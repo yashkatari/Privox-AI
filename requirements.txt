@@ -1,0 +1,15 @@
+# Core Python Dependencies for Privox AI Pipeline
+
+# Porcupine - Wake Word Detection
+pvporcupine
+pyaudio
+
+# Whisper - Speech-to-Text
+transformers
+librosa
+
+# Offline LLM - GPT4All/Mistral/Ollama Wrapper
+gpt4all
+
+# Encryption
+pycryptodome
