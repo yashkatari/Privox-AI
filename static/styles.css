@@ -1,0 +1,861 @@
+/* ---
+   1. YOUR CUSTOM FONTS
+   --- */
+@import url(https://db.onlinewebfonts.com/c/8af4648faad736e5dafed2c6c9775bb3?family=Visby+CF+Heavy);
+
+@font-face {
+    font-family: 'Solenoidal';
+    src: url('/static/Solenoidal.otf') format('opentype'),
+         url('/static/Solenoidal.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Magnita';
+    src: url('/static/Magnita.woff') format('woff'),
+         url('/static/Magnita.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+/* ---
+   2. GLOBAL & SCREEN STYLES
+   --- */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body, html {
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    /* NEW FONT */
+    font-family: "Visby CF Heavy", sans-serif;
+    color: #333;
+    background-color: #f0f2f5;
+}
+
+.screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    background-color: transparent;
+}
+
+.screen-active { transform: translateY(0); }
+.screen-inactive { transform: translateY(-100%); }
+#screen2 {
+    transform: translateY(100%);
+    background-color: #f0f2f5;
+    justify-content: flex-start; /* Align content from top */
+}
+#screen2.screen-active { transform: translateY(0); }
+
+.background-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    z-index: -1;
+}
+
+/* Background images: default (mobile) images. */
+.screen1-bg { background-image: url('/static/bg.jpg'); }
+.screen2-bg { background-image: url('/static/bg2.jpeg'); }
+
+/* ---
+   3. SCREEN 1: TEXT ANIMATION & LAYOUT
+   --- */
+.content-wrapper {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 20px;
+    width: 100%;
+    position: relative;
+}
+
+.main-title-container {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    grid-template-rows: auto auto auto;
+    grid-template-areas:
+        "l1-1 l1-1 l1-2"
+        ".... l2   ...."
+        "l3-1 l3-2 l3-2";
+    align-items: center;
+    justify-items: center;
+    width: 90%;
+    max-width: 600px;
+    font-family: 'Solenoidal', sans-serif;
+    font-size: 2.8em; 
+    letter-spacing: 0.5px; 
+    font-weight: 600;
+    color: #2c3e50;
+    gap: 10px 5px;
+}
+
+.line-1.part-1 { grid-area: l1-1; justify-self: end; }
+.line-1.part-2 { grid-area: l1-2; justify-self: start; }
+.line-2.part-3 { grid-area: l2; font-size: 1.5em; color: #007bff; }
+.line-3.part-4 { grid-area: l3-1; justify-self: end; }
+.line-3.part-5 { grid-area: l3-2; justify-self: start; }
+
+.anim-text {
+    opacity: 0;
+    filter: blur(8px);
+    transition: opacity 0.6s ease-out, filter 0.6s ease-out;
+}
+.anim-text.visible { opacity: 1; filter: blur(0px); }
+
+.final-logo-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    opacity: 0;
+    transition: opacity 0.7s ease-in;
+}
+.final-logo-container.visible { opacity: 1; }
+
+.privox-logo {
+    font-family: 'Magnita', sans-serif;
+    font-size: 4.5em;
+    font-weight: normal;
+    color: #333;
+}
+
+.ai-logo {
+    font-family: 'Playfair Display', serif; 
+    font-size: 4em;
+    font-weight: 700;
+    color: #007bff;
+}
+
+.subtitle {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1.1em;
+    font-weight: 400;
+    color: #555;
+    opacity: 0;
+    transition: opacity 0.8s ease-out 0.5s;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, 50px);
+    margin-top: 1.5em;
+}
+.subtitle.visible { opacity: 1; }
+
+/* ---
+   4. SCREEN 1: BOTTOM SECTION & MIC
+   --- */
+.bottom-section {
+    position: relative;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-bottom: 50px; 
+    z-index: 10;
+}
+
+.glass-mic-button {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.3s ease, opacity 0.3s ease-out;
+    position: relative;
+    z-index: 20; 
+}
+.glass-mic-button:hover {
+    background: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.2);
+}
+.glass-mic-button:active { transform: scale(0.95); }
+.glass-mic-button.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(0.8);
+}
+.mic-icon-svg {
+    width: 38px;
+    height: 38px;
+    color: #007bff;
+}
+
+/* ---
+   5. SCREEN 1: WAKE-UP UI (TEXT, BLUR, & GIF)
+   --- */
+.wake-ui-container {
+    position: absolute;
+    bottom: 50px; 
+    left: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column; 
+    justify-content: center;
+    align-items: center; 
+    opacity: 0;
+    transition: opacity 0.4s ease-out;
+    pointer-events: none;
+    z-index: 15;
+    background-color: transparent; 
+}
+.wake-ui-container.active { opacity: 1; }
+
+.wake-text {
+    color: #ffffff; 
+    font-size: 1.1em;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    z-index: 2;
+    text-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    position: relative; 
+}
+.speak-icon {
+    height: 20px;
+    width: auto;
+}
+.radial-blur-effect {
+    position: absolute;
+    top: 0; 
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 150px; 
+    height: 150px; 
+    background: radial-gradient(
+        circle, 
+        rgba(0, 123, 255, 0.7), 
+        rgba(255, 255, 255, 0.5), 
+        transparent 70%
+    );
+    border-radius: 50%; 
+    filter: blur(40px);
+    z-index: 1;
+}
+.spiral-gif-wrapper {
+    z-index: 1;
+    margin-top: 15px;
+    width: 80px;  
+    height: 80px; 
+    border-radius: 50%; 
+    overflow: hidden; 
+    display: flex; 
+    justify-content: center;
+    align-items: center;
+}
+.spiral-gif {
+    width: 100%; 
+    height: 100%;
+    object-fit: cover; 
+    transform: scale(1.6); 
+    transform-origin: center center; 
+    object-position: center center; 
+    transition: transform 0.3s ease-out;
+}
+
+/* =================================================================== */
+/* 6. SCREEN 2: NEW STYLES */
+/* =================================================================== */
+
+.screen2-header {
+    width: 100%;
+    text-align: center;
+    padding: 20px;
+    z-index: 10;
+}
+.privox-logo-small {
+    font-family: 'Magnita', sans-serif;
+    font-size: 2.5em;
+    font-weight: normal;
+    color: #fff;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+.ai-logo-small {
+    font-family: 'Playfair Display', serif; 
+    font-size: 2.2em;
+    font-weight: 700;
+    color: #007bff;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+
+.chat-container {
+    flex-grow: 1;
+    width: 100%;
+    max-width: 800px;
+    overflow-y: auto;
+    padding: 20px;
+    padding-bottom: 120px; /* Space for the bottom bar */
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    /* Smooth scrolling */
+    scroll-behavior: smooth;
+}
+
+.initial-chat-ui, .thinking-ui {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: white;
+    text-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    margin-top: 20vh;
+}
+.central-spiral {
+    width: 120px;
+    height: 120px;
+}
+.speak-prompt-text {
+    font-size: 1.2em;
+    font-weight: 600;
+    margin-top: 20px;
+}
+
+.thinking-ui {
+    display: none; /* Hidden by default */
+    flex-direction: row;
+    gap: 15px;
+    margin: 10px 0;
+}
+.thinking-spiral {
+    width: 50px;
+    height: 50px;
+    margin-top: 0;
+}
+.thinking-text {
+    font-size: 1.1em;
+}
+
+/* Chat Bubbles */
+.message {
+    padding: 12px 18px;
+    border-radius: 20px;
+    max-width: 80%;
+    word-wrap: break-word;
+    line-height: 1.5;
+    font-size: 1rem;
+    
+    /* Glassmorphism for bubbles */
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.user-message {
+    align-self: flex-end;
+    background: rgba(0, 123, 255, 0.5); /* Blue glass */
+    color: white;
+    border-radius: 20px 20px 5px 20px;
+}
+
+.ai-message {
+    align-self: flex-start;
+    color: white;
+    border-radius: 20px 20px 20px 5px;
+}
+
+/* =================================================================== */
+/* 7. BOTTOM LIQUID GLASS BAR */
+/* =================================================================== */
+.bottom-glass-bar {
+    position: fixed;
+    bottom: 20px; /* Sits above the bottom edge */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 95%;
+    max-width: 500px;
+    z-index: 100;
+    
+    /* Base styles from your example */
+    border-radius: 2rem;
+    overflow: hidden;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* Glass Layers */
+.glass-filter {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    backdrop-filter: blur(10px);
+    /* The LIQUID effect */
+    filter: url(#lg-dist);
+    isolation: isolate;
+}
+.glass-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: rgba(255, 255, 255, 0.2); /* Your --lg-bg-color */
+}
+.glass-specular {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    border-radius: inherit;
+    overflow: hidden;
+    box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.75),
+                inset 0 0 5px rgba(255, 255, 255, 0.75);
+}
+
+.glass-content {
+    position: relative;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+}
+
+.main-controls, .text-input-area {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+.text-input-area {
+    display: none; /* Hidden by default */
+}
+
+.glass-bar-btn {
+    background: transparent;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+.glass-bar-btn svg, .glass-bar-btn img {
+    width: 24px;
+    height: 24px;
+    opacity: 0.8;
+}
+.glass-bar-btn:hover svg, .glass-bar-btn:hover img {
+    opacity: 1;
+}
+
+.glass-bar-btn.mic {
+    background: #007bff;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    box-shadow: 0 4px 10px rgba(0, 123, 255, 0.4);
+}
+.glass-bar-btn.mic img {
+    width: 28px;
+    height: 28px;
+    opacity: 1;
+}
+
+/* Listening animation for main mic */
+.glass-bar-btn.mic.listening {
+    animation: pulse-blue 1.5s infinite;
+}
+
+/* Pulse / Heart-beat animation used for listening state */
+@keyframes pulse-blue {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 6px 18px rgba(0, 123, 255, 0.18), 0 0 0 0 rgba(0,123,255,0.12);
+        opacity: 1;
+    }
+    40% {
+        transform: scale(1.08);
+        box-shadow: 0 10px 26px rgba(0, 123, 255, 0.28), 0 0 0 8px rgba(0,123,255,0.08);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 6px 18px rgba(0, 123, 255, 0.18), 0 0 0 0 rgba(0,123,255,0);
+        opacity: 1;
+    }
+}
+
+/* Also apply subtle listening pulse to the big screen1 mic button when active */
+.glass-mic-button.listening {
+    animation: pulse-blue 1.5s infinite;
+}
+
+#chatInput {
+    flex-grow: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: white;
+    font-family: "Visby CF Heavy", sans-serif;
+    font-size: 1rem;
+    padding: 10px;
+}
+#chatInput::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.glass-bar-btn.send {
+    background: #007bff;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+}
+.glass-bar-btn.send svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* =================================================================== */
+/* 8. TOAST NOTIFICATION */
+/* =================================================================== */
+#systemToast {
+    position: fixed;
+    bottom: -100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 20px;
+    z-index: 200;
+    transition: bottom 0.3s ease-in-out;
+}
+#systemToast.show {
+    bottom: 120px; /* Show above the glass bar */
+}
+
+/* =================================================================== */
+/* 9. RESPONSIVENESS (Mobile) */
+/* =================================================================== */
+@media (max-width: 600px) {
+    .main-title-container {
+        font-size: 2em;
+    }
+    .privox-logo {
+        font-size: 3.5em;
+    }
+    .ai-logo {
+        font-size: 3.2em;
+    }
+
+    .bottom-glass-bar {
+        width: 95%;
+        bottom: 10px;
+    }
+    
+    .chat-container {
+        padding: 10px;
+        padding-bottom: 100px; /* Space for bar */
+    }
+
+    #systemToast.show {
+        bottom: 100px;
+    }
+}
+/* =================================================================== */
+/* 10. WEB LAYOUT ADJUSTMENTS & SCROLLBAR (Your new requests) */
+/* =================================================================== */
+
+/* --- Makes chat "spread out" on screens wider than 800px --- */
+@media (min-width: 801px) {
+    .chat-container {
+        max-width: 1100px; /* Increased from 800px to "spread" */
+    }
+
+    .message {
+        max-width: 70%; /* Adjusted from 80% */
+    }
+}
+
+
+/* --- Thin, Custom Scrollbar for Webkit (Chrome, Safari, Edge) --- */
+.chat-container::-webkit-scrollbar {
+    width: 6px; /* Makes the scrollbar thin */
+}
+
+.chat-container::-webkit-scrollbar-track {
+    background: transparent; /* Hides the "track" */
+}
+
+.chat-container::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.3); /* Subtle white/glass color */
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.chat-container::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255, 255, 255, 0.5); /* Brighter on hover */
+}
+
+/* Laptop / Desktop: swap to large background assets when viewport is wide */
+@media (min-width: 1024px) {
+    .screen1-bg { background-image: url('/static/l_bg.jpeg'); }
+    .screen2-bg { background-image: url('/static/l_bg2.jpeg'); }
+}
+/* =================================================================== */
+/* MODE TOGGLE & TTS BUTTONS */
+/* =================================================================== */
+
+.mode-toggle-container {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    gap: 10px;
+    z-index: 100;
+}
+
+.mode-toggle-btn {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 20px;
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.9em;
+    color: white;
+}
+
+.mode-toggle-btn.online {
+    background: rgba(0, 123, 255, 0.3);
+    border-color: rgba(0, 123, 255, 0.6);
+}
+
+.mode-toggle-btn.offline {
+    background: rgba(108, 117, 125, 0.3);
+    border-color: rgba(108, 117, 125, 0.6);
+}
+
+.mode-toggle-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.mode-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.mode-toggle-btn.online .mode-indicator {
+    background: #28a745;
+    box-shadow: 0 0 8px #28a745;
+}
+
+.mode-toggle-btn.offline .mode-indicator {
+    background: #6c757d;
+}
+
+.tts-toggle-btn {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.tts-toggle-btn.active {
+    background: rgba(0, 123, 255, 0.3);
+    border-color: rgba(0, 123, 255, 0.6);
+}
+
+.tts-toggle-btn svg {
+    width: 20px;
+    height: 20px;
+    color: white;
+}
+
+/* =================================================================== */
+/* THINKING UI ENHANCEMENT */
+/* =================================================================== */
+
+.thinking-ui {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    padding: 15px 20px;
+    margin: 10px 0;
+    max-width: fit-content;
+    align-self: flex-start;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.thinking-spiral {
+    width: 30px;
+    height: 30px;
+}
+
+.thinking-spiral .spiral-gif {
+    width: 100%;
+    height: 100%;
+    transform: scale(1);
+}
+
+.thinking-text {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.95em;
+    color: white;
+    font-weight: 500;
+}
+
+/* =================================================================== */
+/* SPEAKER BUTTON FOR RESPONSES */
+/* =================================================================== */
+
+.speaker-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    opacity: 0.7;
+}
+
+.structured-message {
+    position: relative;
+    padding-right: 50px !important; /* Make space for speaker button */
+}
+
+.speaker-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.speaker-btn.speaking {
+    background: rgba(0, 123, 255, 0.3);
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+.speaker-btn svg {
+    width: 18px;
+    height: 18px;
+    color: white;
+}
+
+/* =================================================================== */
+/* RESPONSIVE ADJUSTMENTS */
+/* =================================================================== */
+
+@media (max-width: 768px) {
+    .mode-toggle-container {
+        top: 10px;
+        right: 10px;
+    }
+    
+    .mode-toggle-btn {
+        padding: 6px 12px;
+        font-size: 0.8em;
+    }
+    
+    .tts-toggle-btn {
+        width: 35px;
+        height: 35px;
+    }
+    
+    .thinking-ui {
+        padding: 12px 15px;
+        gap: 10px;
+    }
+    
+    .thinking-text {
+        font-size: 0.85em;
+    }
+}
+
+/* =================================================================== */
+/* SYSTEM MESSAGE STYLE */
+/* =================================================================== */
+
+.message.system-message {
+    align-self: center;
+    background: rgba(255, 193, 7, 0.1);
+    border: 1px solid rgba(255, 193, 7, 0.3);
+    color: #ffc107;
+    font-style: italic;
+    font-size: 0.9em;
+    padding: 10px 15px;
+    max-width: 70%;
+    text-align: center;
+}
+
+/* =================================================================== */
+/* DISABLED STATE */
+/* =================================================================== */
+
+button:disabled,
+input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+button:disabled:hover {
+    transform: none !important;
+    box-shadow: none !important;
+}

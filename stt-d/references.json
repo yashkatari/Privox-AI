@@ -1,0 +1,19 @@
+{
+  "QS1.wav": "today the weather is pleasant and sunny",
+  "QS2.wav": "It is an offline intelligent voice assistant",
+  "QS3.wav": "artificial intelligence is transforming everyday technology",
+  "QS4.wav": "my final year project focuses on privacy preservation",
+  "QS5.wav": "speech recording works best in quiet environment",
+
+  "NE1.wav": "voice assistant should work even in noisy conditions",
+  "NE2.wav": "background noise reduces speech accuracy",
+  "NE3.wav": " speech locally on the device",
+  "NE4.wav": "noise deduction is important for real-time applications",
+  "NE5.wav": "it should avoid false activations",
+
+  "BS1.wav": "speech to text should handle overlapping voices",
+  "BS2.wav": "privacy is a major problem in modern voice assistants",
+  "BS3.wav": "offline processing improves data security",
+  "BS4.wav": "the assistant responds after detecting silence",
+  "BS5.wav": "local language models reduce cloud dependency"
+}

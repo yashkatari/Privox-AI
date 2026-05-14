@@ -1,0 +1,39 @@
+# Python Virtual Environments
+.venv/
+venv/
+privox_venv/
+env/
+
+# Python Cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Models & Weights (Too large for GitHub)
+ollama/
+QWEN/
+models/
+*.bin
+*.pt
+*.pth
+*.onnx
+*.safetensors
+
+# Environment Variables
+.env
+
+# Data & Vaults
+data/vault.encrypted
+data/.vault_key
+data/automation_rules.json
+
+# Screenshots & Local Audio
+*.png
+*.jpg
+*.jpeg
+*.wav
+*.mp3
+
+# IDEs
+.vscode/
+.idea/

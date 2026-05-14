@@ -1,0 +1,2046 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Privox AI Assistant</title>
+    
+    <style>
+        @import url(https://db.onlinewebfonts.com/c/8af4648faad736e5dafed2c6c9775bb3?family=Visby+CF+Heavy);
+    </style>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    
+    <!-- NEW SIDEBAR & ZERO TRACE STYLES -->
+    <style>
+        .thinking-ui {
+            font-size: 12px;
+            z-index: 10;
+            display: none;
+            margin-left: 20px;
+        }
+        .thinking-text {
+            font-size: 12px;
+        }
+        
+        .structured-message {
+            max-width: 80%;
+            word-wrap: break-word;
+            line-height: 1.6;
+            font-size: 1rem;
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border-radius: 20px 20px 20px 5px;
+            color: white;
+            align-self: flex-start;
+            padding: 15px 18px;
+            position: relative;
+        }
+        
+        .structured-message h3 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            color: #ffff00 !important;
+            margin-top: 10px;
+            margin-bottom: 8px;
+            font-size: 1.1em;
+            border-left: 3px solid #ffff00;
+            padding-left: 10px;
+        }
+        
+        .structured-message h3:first-child {
+            margin-top: 0;
+        }
+        
+        .structured-message p {
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+        
+        .structured-message p:last-child {
+            margin-bottom: 0;
+        }
+        
+        .structured-message code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        
+        .structured-message pre {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 8px;
+            padding: 12px;
+            margin: 10px 0;
+            overflow-x: auto;
+            border-left: 3px solid #007bff;
+        }
+        
+        .structured-message ul, .structured-message ol {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        
+        .structured-message li {
+            margin-bottom: 5px;
+        }
+        
+        .ai-content {
+            padding-right: 30px;
+        }
+        
+        /* ================ SIDEBAR STYLES ================ */
+        .sidebar-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: white;
+        }
+        
+        .sidebar-toggle:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: scale(1.1);
+        }
+        
+        .sidebar-toggle svg {
+            width: 24px;
+            height: 24px;
+        }
+        
+        .chat-sidebar {
+            position: fixed;
+            top: 0;
+            left: -350px;
+            width: 320px;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 999;
+            transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-y: auto;
+            padding: 20px;
+            box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        .chat-sidebar.open {
+            left: 0;
+        }
+        
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .sidebar-header h3 {
+            color: #ffff00;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.2em;
+            margin: 0;
+        }
+        
+        .zero-trace-btn {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            padding: 8px 15px;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+        }
+        
+        .zero-trace-btn.active {
+            background: rgba(255, 0, 0, 0.2);
+            border-color: rgba(255, 0, 0, 0.5);
+            color: #ff6b6b;
+        }
+        
+        .zero-trace-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .zero-trace-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+        
+        .new-chat-btn {
+            width: 100%;
+            padding: 12px;
+            background: rgba(0, 123, 255, 0.3);
+            border: 1px solid rgba(0, 123, 255, 0.6);
+            border-radius: 10px;
+            color: white;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .new-chat-btn:hover {
+            background: rgba(0, 123, 255, 0.5);
+            transform: translateY(-2px);
+        }
+        
+        .chat-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .chat-item {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .chat-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .chat-item.active {
+            border-color: #ffff00;
+            background: rgba(255, 255, 0, 0.05);
+        }
+        
+        .chat-name {
+            color: #ffff00;
+            font-weight: 600;
+            font-size: 1em;
+            margin-bottom: 5px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .chat-date {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.8em;
+            margin-bottom: 10px;
+        }
+        
+        .chat-preview {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.85em;
+            margin-bottom: 10px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+        
+        .chat-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        
+        .chat-action-btn {
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        
+        .chat-action-btn:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .chat-action-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+        
+        .delete-warning {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 30px;
+            width: 400px;
+            max-width: 90%;
+            z-index: 2000;
+            display: none;
+        }
+        
+        .delete-warning.show {
+            display: block;
+        }
+        
+        .warning-title {
+            color: #ff6b6b;
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .warning-message {
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 25px;
+            text-align: center;
+            line-height: 1.5;
+        }
+        
+        .warning-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+        
+        .warning-btn {
+            padding: 10px 25px;
+            border-radius: 20px;
+            border: none;
+            cursor: pointer;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .warning-btn.cancel {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        
+        .warning-btn.confirm {
+            background: rgba(255, 107, 107, 0.3);
+            border: 1px solid rgba(255, 107, 107, 0.6);
+            color: #ff6b6b;
+        }
+        
+        .warning-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 998;
+            display: none;
+        }
+        
+        .sidebar-overlay.show {
+            display: block;
+        }
+        
+        .zero-trace-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid #ff6b6b;
+            border-radius: 20px;
+            padding: 8px 15px;
+            color: #ff6b6b;
+            font-size: 0.9em;
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .zero-trace-indicator.active {
+            display: flex;
+        }
+        
+        .zero-trace-indicator svg {
+            width: 18px;
+            height: 18px;
+        }
+        
+        /* Make sure sidebar doesn't interfere with existing content */
+        @media (max-width: 768px) {
+            .chat-sidebar {
+                width: 280px;
+                left: -280px;
+            }
+            
+            .sidebar-toggle {
+                top: 15px;
+                left: 15px;
+                width: 45px;
+                height: 45px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="screen1" class="screen screen-active">
+        <div class="background-image screen1-bg" aria-hidden="true"></div>
+
+        <div class="content-wrapper">
+            
+            <div class="main-title-container" id="mainTitleContainer">
+                <span class="anim-text line-1 part-1">Privacy</span><span class="anim-text line-1 part-2">-First</span>
+                <span class="anim-text line-2 part-3">AI</span>
+                <span class="anim-text line-3 part-4">Voice</span><span class="anim-text line-3 part-5">Assistant</span>
+            </div>
+            
+            <div class="final-logo-container" id="finalLogoContainer">
+                <span class="privox-logo">Privox</span>
+                <span class="ai-logo">AI</span>
+            </div>
+
+            <div class="subtitle" id="subtitle">
+                Intelligent Dual Mode Voice Assistant
+            </div>
+        </div>
+
+        <div class="bottom-section">
+            
+            <div class="wake-ui-container" id="wakeUiContainer">
+                <div class="radial-blur-effect"></div>
+                <div class="wake-text" id="wakeText">
+                    Say 'Hello Privox' <img src="{{ url_for('static', filename='speak.png') }}" alt="Speak icon" class="speak-icon">
+                </div>
+                <div class="spiral-gif-wrapper">
+                    <img src="{{ url_for('static', filename='spiral.gif') }}" alt="Listening..." class="spiral-gif" />
+                </div>
+            </div>
+            
+            <button id="micBtnScreen1" class="glass-mic-button">
+                <svg class="mic-icon-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 14C13.66 14 15 12.66 15 11V5C15 3.34 13.66 2 12 2C10.34 2 9 3.34 9 5V11C9 12.66 10.34 14 12 14ZM17 11C17 14 14.71 16.43 12 16.93V20H11V20H5V22H19V20H13V16.93C15.29 16.43 17 14 17 11Z"/></svg>
+            </button>
+        </div>
+    </div>
+
+    <div id="screen2" class="screen">
+        <!-- SIDEBAR TOGGLE BUTTON (Only visible on Screen 2) -->
+        <div class="sidebar-toggle" id="sidebarToggle">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+            </svg>
+        </div>
+        
+        <!-- ZERO TRACE INDICATOR -->
+        <div class="zero-trace-indicator" id="zeroTraceIndicator">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
+            </svg>
+            Zero Trace Mode Active
+        </div>
+        
+        <div class="background-image screen2-bg" aria-hidden="true"></div>
+        <header class="screen2-header">
+            <span class="privox-logo-small">Privox</span>
+            <span class="ai-logo-small">AI</span>
+            <!-- MODE TOGGLE BUTTONS -->
+            <div class="mode-toggle-container">
+                <button id="modeToggle" class="mode-toggle-btn online">
+                    <span class="mode-indicator"></span>
+                    <span class="mode-text">ONLINE</span>
+                </button>
+                <button id="ttsToggle" class="tts-toggle-btn active">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                    </svg>
+                </button>
+            </div>
+            <!-- Right-side header icons (storage etc.) -->
+            <div class="header-icons-right" style="display:flex; align-items:center; gap:8px; margin-left:12px;">
+                <div id="chatStorageIcon" title="Storage: calculating..." style="width:26px; height:26px; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.45); color:#fff; border-radius:6px; font-size:14px; cursor:default;">
+                    ⓘ
+                </div>
+            </div>
+        </header>
+
+        <main class="chat-container" id="chatContainer">
+            <div class="initial-chat-ui" id="initialChatUI">
+                <div class="spiral-gif-wrapper central-spiral">
+                    <img src="{{ url_for('static', filename='spiral.gif') }}" alt="Listening..." class="spiral-gif" />
+                </div>
+                <div class="speak-prompt-text" id="speakPromptText">
+                    Speak to Privox AI To Get Answer
+                </div>
+            </div>
+
+            <!-- Thinking UI will be dynamically added here -->
+            
+        </main>
+        
+
+        <footer class="bottom-glass-bar">
+            <svg style="display: none">
+                <filter id="lg-dist" x="0%" y="0%" width="100%" height="100%">
+                    <feTurbulence type="fractalNoise" baseFrequency="0.008 0.008" numOctaves="2" seed="92" result="noise" />
+                    <feGaussianBlur in="noise" stdDeviation="2" result="blurred" />
+                    <feDisplacementMap in="SourceGraphic" in2="blurred" scale="70" xChannelSelector="R" yChannelSelector="G" />
+                </filter>
+            </svg>
+            
+            <div class="glass-filter"></div>
+            <div class="glass-overlay"></div>
+            <div class="glass-specular"></div>
+            
+            <div class="glass-content">
+                
+                <div class="main-controls" id="mainControls">
+                    <button class="glass-bar-btn" id="keyboardBtn" aria-label="Keyboard">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6C22 4.9 21.1 4 20 4ZM8 11H6V9H8V11ZM12 11H10V9H12V11ZM16 11H14V9H16V11ZM18 11H16V9H18V11ZM8 15H6V13H8V15ZM12 15H10V13H12V15ZM16 15H14V13H16V15ZM18 15H16V13H18V15Z"/></svg>
+                    </button>
+                    
+                    <button class="glass-bar-btn mic" id="mainMicBtn" aria-label="Microphone">
+                        <img src="{{ url_for('static', filename='mic.png') }}" alt="Mic" />
+                    </button>
+                    
+                    <button class="glass-bar-btn" id="stopBtn" aria-label="Stop">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12Z"/></svg>
+                    </button>
+                </div>
+
+                <div class="text-input-area" id="textInputArea">
+                    <button class="glass-bar-btn" id="micBtnText" aria-label="Microphone">
+                        <img src="{{ url_for('static', filename='mic.png') }}" alt="Mic" />
+                    </button>
+                    <input type="text" id="chatInput" placeholder="Type your message..." autocomplete="off">
+                    <button class="glass-bar-btn send" id="sendBtn" aria-label="Send">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10L17 12 2 14Z"/></svg>
+                    </button>
+                </div>
+
+            </div>
+        </footer>
+    </div>
+    
+    <!-- CHAT SIDEBAR (Hidden by default) -->
+    <div class="chat-sidebar" id="chatSidebar">
+        <div class="sidebar-header">
+            <h3>Chat History</h3>
+            <button class="zero-trace-btn" id="zeroTraceBtn">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/>
+                    <path d="M16.59 7.58L10 14.17l-2.59-2.58L6 13l4 4 8-8z"/>
+                </svg>
+                Zero Trace
+            </button>
+        </div>
+        
+        <button class="new-chat-btn" id="newChatBtn">
+            + New Chat
+        </button>
+        
+        <div class="chat-list" id="chatList">
+            <!-- Chat items will be dynamically added here -->
+        </div>
+    </div>
+    
+    <!-- SIDEBAR OVERLAY -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    
+    <!-- DELETE WARNING MODAL -->
+    <div class="delete-warning" id="deleteWarning">
+        <div class="warning-title">⚠️ Warning</div>
+        <div class="warning-message" id="warningMessage">
+            Creating a new chat will delete your oldest chat. Privox AI suggests you download it first!
+        </div>
+        <div class="warning-actions">
+            <button class="warning-btn cancel" id="cancelDelete">Cancel</button>
+            <button class="warning-btn confirm" id="confirmDelete">Continue Anyway</button>
+        </div>
+    </div>
+    
+    <!-- EXISTING TOAST -->
+    <div id="systemToast">Privox AI is Stopped!</div>
+
+    <script src="https://cdn.socket.io/4.4.1/socket.io.min.js"></script>
+    <script>
+    const socket = io();
+
+    // --- Screen 1 Elements ---
+    const screen1 = document.getElementById('screen1');
+    const micBtnScreen1 = document.getElementById('micBtnScreen1');
+    const wakeUiContainer = document.getElementById('wakeUiContainer');
+    const wakeText = document.getElementById('wakeText');
+    const textAnimationContainer = document.getElementById('mainTitleContainer');
+    const finalLogoContainer = document.getElementById('finalLogoContainer');
+    const subtitleElement = document.getElementById('subtitle');
+
+    // --- Screen 2 Elements ---
+    const screen2 = document.getElementById('screen2');
+    const chatContainer = document.getElementById('chatContainer');
+    const initialChatUI = document.getElementById('initialChatUI');
+    const speakPromptText = document.getElementById('speakPromptText');
+    const systemToast = document.getElementById('systemToast');
+
+    // --- Glass Bar Elements ---
+    const mainControls = document.getElementById('mainControls');
+    const textInputArea = document.getElementById('textInputArea');
+    const keyboardBtn = document.getElementById('keyboardBtn');
+    const mainMicBtn = document.getElementById('mainMicBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const micBtnText = document.getElementById('micBtnText');
+    const chatInput = document.getElementById('chatInput');
+    const sendBtn = document.getElementById('sendBtn');
+
+    // --- Mode Toggle Elements ---
+    const modeToggleBtn = document.getElementById('modeToggle');
+    const ttsToggleBtn = document.getElementById('ttsToggle');
+
+    // --- State Variables ---
+    let isGenerating = false;
+    let isListening = false;
+    let onlineMode = true;
+    let ttsEnabled = true;
+    let activeSpeakerBtn = null;
+
+    // ===================================================================
+    // CHAT HISTORY MANAGEMENT - COMPLETELY SEPARATE SYSTEM
+    // ===================================================================
+    
+    // Chat System State Variables
+    let zeroTraceMode = false;
+    let currentChatId = null;
+    let chatHistory = [];
+    const MAX_CHATS = 8;
+    const STORAGE_KEY = 'privox_chats';
+
+    // Initialize chat system
+    async function initChatSystem() {
+        loadChats();
+        renderChatList();
+        try {
+        await chatEncryption.init();
+        console.log("[E2E] Chat encryption ready");
+    } catch (e) {
+        console.error("[E2E] Failed to initialize encryption:", e);
+    }
+        // Set up sidebar event listeners
+        document.getElementById('sidebarToggle').onclick = toggleSidebar;
+        document.getElementById('zeroTraceBtn').onclick = toggleZeroTraceMode;
+        document.getElementById('newChatBtn').onclick = createNewChat;
+        document.getElementById('sidebarOverlay').onclick = closeSidebar;
+        document.getElementById('cancelDelete').onclick = closeDeleteWarning;
+        document.getElementById('confirmDelete').onclick = confirmNewChat;
+        
+        // Create initial chat if none exists
+        if (chatHistory.length === 0) {
+            createNewChat(true);
+        }
+
+        // Update storage icon after init
+        updateChatStorageIcon();
+        
+        // Hide sidebar toggle on screen 1
+        document.getElementById('sidebarToggle').style.display = 'none';
+    }
+// Add password setup dialog (call this on first run)
+function setupEncryptionPassword() {
+    if (localStorage.getItem(STORAGE_KEY + '_password_set')) return;
+    
+    const password = prompt(
+        "🔐 Set encryption password for your chats (optional):\n" +
+        "• Leave empty for auto-generated key\n" +
+        "• Password protects your chats\n" +
+        "• Without password, chats use session-only key",
+        ""
+    );
+    
+    if (password !== null) {
+        if (password) {
+            // User wants password-based encryption
+            chatEncryption.init(password).then(() => {
+                localStorage.setItem(STORAGE_KEY + '_password_set', 'true');
+                showToast("🔐 Password encryption enabled");
+            });
+        } else {
+            // Auto-generated key (session only)
+            localStorage.setItem(STORAGE_KEY + '_password_set', 'true');
+            showToast("🔐 Auto-encryption enabled (session key)");
+        }
+    }
+}
+    // Load chats from localStorage
+   async function saveChats() {
+    if (zeroTraceMode) return;
+
+    // Limits and quota (adjustable)
+    const MAX_CHATS = 8;
+    const MAX_MESSAGES_PER_CHAT = 200;
+    const MAX_MESSAGE_CHARS = 5000;
+    const QUOTA_BYTES = 5 * 1024 * 1024; // 5 MB
+
+    try {
+        console.log("[E2E] Preparing chats for save (enforce limits)");
+
+        // Deep copy chatHistory so we can trim safely
+        let toSave = JSON.parse(JSON.stringify(chatHistory || []));
+
+        // Enforce per-chat message limits and truncate very long messages
+        toSave = toSave.map(chat => {
+            if (!chat.messages) return chat;
+            if (chat.messages.length > MAX_MESSAGES_PER_CHAT) {
+                // Keep newest messages (assumes newest at start)
+                chat.messages = chat.messages.slice(0, MAX_MESSAGES_PER_CHAT);
+            }
+            chat.messages = chat.messages.map(m => {
+                if (m && m.text && m.text.length > MAX_MESSAGE_CHARS) {
+                    m.text = m.text.slice(0, MAX_MESSAGE_CHARS) + '…';
+                }
+                return m;
+            });
+            return chat;
+        });
+
+        // Ensure max chat count (keep newest chats at start of array)
+        if (toSave.length > MAX_CHATS) toSave = toSave.slice(0, MAX_CHATS);
+
+        // Estimate size and trim oldest chats until under quota
+        const encoder = new TextEncoder();
+        let approx = encoder.encode(JSON.stringify(toSave)).length;
+        while (approx > QUOTA_BYTES && toSave.length > 1) {
+            // remove last (oldest) chat
+            toSave.pop();
+            approx = encoder.encode(JSON.stringify(toSave)).length;
+        }
+
+        if (approx > QUOTA_BYTES) {
+            // Still too large — warn user and continue (will save truncated data)
+            showToast('⚠️ Chat history too large for local storage; saving trimmed version.');
+            console.warn('[E2E] Trimmed chats still exceed quota; saving trimmed set. approx=', approx);
+        }
+
+        // Try encrypting trimmed data
+        try {
+            console.log('[E2E] Encrypting chats before saving... (trimmed)');
+            const encrypted = await chatEncryption.encrypt(toSave);
+            localStorage.setItem(STORAGE_KEY, encrypted);
+            localStorage.setItem(STORAGE_KEY + '_format', 'encrypted_v1');
+            localStorage.setItem(STORAGE_KEY + '_last_size', String(approx));
+            console.log('[E2E] Chats encrypted and saved; approxBytes=', approx);
+            updateEncryptionStatus(true);
+        } catch (e) {
+            console.error('[E2E] Encryption failed for trimmed data, saving unencrypted:', e);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
+            localStorage.setItem(STORAGE_KEY + '_format', 'plain');
+            localStorage.setItem(STORAGE_KEY + '_last_size', String(approx));
+            updateEncryptionStatus(false);
+        }
+
+    } catch (e) {
+        console.error('[E2E] Failed to save chats:', e);
+        showToast('⚠️ Failed to save chat history.');
+    }
+}
+
+    // Save chats to localStorage
+ 
+// REPLACE loadChats() function:
+// REPLACE the entire loadChats() function with this:
+async function loadChats() {
+    if (zeroTraceMode) return;
+    
+    console.log("[E2E] Attempting to load chats...");
+    
+    try {
+        // Check for encrypted format
+        const format = localStorage.getItem(STORAGE_KEY + '_format');
+        const saved = localStorage.getItem(STORAGE_KEY);
+        const fingerprint = localStorage.getItem(STORAGE_KEY + '_fingerprint');
+        
+        console.log("[E2E] Found saved data:", !!saved);
+        console.log("[E2E] Format:", format);
+        console.log("[E2E] Fingerprint:", fingerprint);
+        
+        if (!saved) {
+            console.log("[E2E] No saved chats found");
+            chatHistory = [];
+            updateEncryptionStatus(false);
+            return;
+        }
+        
+        // Initialize encryption first
+        try {
+            await chatEncryption.init();
+            console.log("[E2E] Encryption initialized");
+        } catch (e) {
+            console.error("[E2E] Failed to init encryption:", e);
+        }
+        if (format === 'encrypted_v1' || fingerprint) {
+    console.log("[E2E] Detected encrypted format, decrypting...");
+    
+    try {
+        // Try to decrypt
+        chatHistory = await chatEncryption.decrypt(saved);
+        console.log("[E2E] Successfully decrypted", chatHistory.length, "chats");
+        console.log("[E2E] First chat preview:", chatHistory[0]?.preview);
+        console.log("[E2E] First chat message count:", chatHistory[0]?.messages?.length);
+        
+        // Check if messages exist
+        chatHistory.forEach((chat, index) => {
+            console.log(`[E2E] Chat ${index}: "${chat.name}" - ${chat.messages?.length || 0} messages`);
+        });
+        
+        updateEncryptionStatus(true);
+        
+    } catch (decryptError) {
+        console.error("[E2E] Decryption failed:", decryptError);
+        
+        // Try to load as legacy JSON
+        try {
+            chatHistory = JSON.parse(saved);
+            console.log("[E2E] Loaded as legacy JSON - Message count:", 
+                chatHistory[0]?.messages?.length || 0);
+            updateEncryptionStatus(false);
+        } catch (parseError) {
+            console.error("[E2E] Failed to parse as JSON:", parseError);
+            chatHistory = [];
+        }
+    }
+}else {
+            // Try to parse as plain JSON
+            try {
+                chatHistory = JSON.parse(saved);
+                console.log("[E2E] Loaded as plain JSON");
+                updateEncryptionStatus(false);
+            } catch (e) {
+                console.error("[E2E] Failed to parse:", e);
+                chatHistory = [];
+            }
+        }
+        
+        currentChatId = chatHistory[0]?.id || null;
+        console.log("[E2E] Current chat ID:", currentChatId);
+        console.log("[E2E] Total chats loaded:", chatHistory.length);
+        
+        // Render the chat list
+        renderChatList();
+        
+    } catch (e) {
+        console.error("[E2E] Critical error loading chats:", e);
+        chatHistory = [];
+        updateEncryptionStatus(false);
+    }
+}
+
+// Update the chat storage icon (per-chat usage)
+function updateChatStorageIcon() {
+    try {
+        const icon = document.getElementById('chatStorageIcon');
+        if (!icon) return;
+        if (!currentChatId) {
+            icon.style.display = 'none';
+            return;
+        }
+        icon.style.display = 'flex';
+
+        // per-chat quota = total quota / MAX_CHATS
+        const QUOTA_BYTES = 5 * 1024 * 1024; // matches save logic
+        const perChatQuota = Math.floor(QUOTA_BYTES / MAX_CHATS);
+
+        const chat = chatHistory.find(c => c.id === currentChatId);
+        let approx = 0;
+        if (chat) {
+            const encoder = new TextEncoder();
+            approx = encoder.encode(JSON.stringify(chat)).length;
+        }
+
+        const usedKB = Math.ceil(approx / 1024);
+        const quotaKB = Math.ceil(perChatQuota / 1024);
+        icon.title = `${usedKB} KB used / ${quotaKB} KB quota for this chat`;
+
+        // color hint
+        if (approx > perChatQuota) {
+            icon.style.background = 'rgba(220,50,50,0.9)';
+        } else if (approx > perChatQuota * 0.8) {
+            icon.style.background = 'rgba(220,165,0,0.9)';
+        } else {
+            icon.style.background = 'rgba(0,0,0,0.45)';
+        }
+    } catch (e) {
+        console.error('updateChatStorageIcon error', e);
+    }
+}
+// New function to update UI status
+function updateEncryptionStatus(isEncrypted) {
+    const statusElement = document.getElementById('encryptionStatus');
+    if (statusElement) {
+        if (isEncrypted) {
+            statusElement.style.display = 'block';
+            statusElement.textContent = '🔒 Encrypted';
+            statusElement.style.color = '#28a745';
+            statusElement.title = 'Chats are encrypted in localStorage';
+        } else {
+            statusElement.style.display = 'block';
+            statusElement.textContent = '⚠️ Unencrypted';
+            statusElement.style.color = '#ffc107';
+            statusElement.title = 'Chats are stored as plain text';
+        }
+    }
+}
+
+// ===================================================================
+// REAL E2E ENCRYPTION FOR LOCALSTORAGE
+// ===================================================================
+
+class ChatEncryption {
+    constructor() {
+        this.encryptionKey = null;
+        this.SALT = 'privox-ai-salt-2024'; // In production, make this random per user
+    }
+    
+    async init(password = null) {
+        if (password) {
+            // User provided password
+            this.encryptionKey = await this.deriveKeyFromPassword(password);
+        } else {
+            // Generate random key (stored in sessionStorage)
+            const savedKey = sessionStorage.getItem('chat_encryption_key');
+            if (savedKey) {
+                // Import existing key
+                const keyData = this.base64ToArray(savedKey);
+                this.encryptionKey = await crypto.subtle.importKey(
+                    "raw",
+                    keyData,
+                    {name: "AES-GCM"},
+                    false,
+                    ["encrypt", "decrypt"]
+                );
+            } else {
+                // Generate new key
+                this.encryptionKey = await crypto.subtle.generateKey(
+                    {name: "AES-GCM", length: 256},
+                    true,
+                    ["encrypt", "decrypt"]
+                );
+                
+                // Export and save to sessionStorage
+                const exported = await crypto.subtle.exportKey("raw", this.encryptionKey);
+                sessionStorage.setItem('chat_encryption_key', 
+                    this.arrayToBase64(new Uint8Array(exported)));
+            }
+        }
+        console.log("[E2E] Encryption initialized");
+    
+    // Add this to save immediately after initialization
+    if (chatHistory.length > 0) {
+        await saveChats();
+    }
+    
+    return this.encryptionKey !== null;
+    }
+    
+    async deriveKeyFromPassword(password) {
+        const enc = new TextEncoder();
+        const keyMaterial = await crypto.subtle.importKey(
+            "raw",
+            enc.encode(password),
+            {name: "PBKDF2"},
+            false,
+            ["deriveKey"]
+        );
+        
+        return await crypto.subtle.deriveKey(
+            {
+                name: "PBKDF2",
+                salt: enc.encode(this.SALT),
+                iterations: 100000,
+                hash: "SHA-256"
+            },
+            keyMaterial,
+            {name: "AES-GCM", length: 256},
+            false,
+            ["encrypt", "decrypt"]
+        );
+    }
+    
+    async encrypt(data) {
+        if (!this.encryptionKey) throw new Error("Encryption not initialized");
+        
+        const enc = new TextEncoder();
+        const iv = crypto.getRandomValues(new Uint8Array(12)); // 96-bit IV
+        
+        const encrypted = await crypto.subtle.encrypt(
+            {name: "AES-GCM", iv: iv},
+            this.encryptionKey,
+            enc.encode(JSON.stringify(data))
+        );
+        
+        // Combine IV + encrypted data + store as base64
+        const combined = new Uint8Array(iv.length + encrypted.byteLength);
+        combined.set(iv, 0);
+        combined.set(new Uint8Array(encrypted), iv.length);
+        
+        return this.arrayToBase64(combined);
+    }
+    
+    async decrypt(encryptedBase64) {
+        if (!this.encryptionKey) throw new Error("Encryption not initialized");
+        
+        const combined = this.base64ToArray(encryptedBase64);
+        const iv = combined.slice(0, 12);
+        const encrypted = combined.slice(12);
+        
+        const decrypted = await crypto.subtle.decrypt(
+            {name: "AES-GCM", iv: iv},
+            this.encryptionKey,
+            encrypted
+        );
+        
+        const dec = new TextDecoder();
+        return JSON.parse(dec.decode(decrypted));
+    }
+    
+    arrayToBase64(array) {
+        return btoa(String.fromCharCode(...array));
+    }
+    
+    base64ToArray(base64) {
+        return Uint8Array.from(atob(base64), c => c.charCodeAt(0));
+    }
+    
+    getKeyFingerprint() {
+        // Generate a fingerprint for display
+        if (!this.encryptionKey) return 'no-key';
+        return 'encryption-active';
+    }
+}
+
+// Global encryption instance
+const chatEncryption = new ChatEncryption();
+
+    // Render chat list in sidebar
+    function renderChatList() {
+        const chatList = document.getElementById('chatList');
+        chatList.innerHTML = '';
+        
+        if (zeroTraceMode) {
+            chatList.innerHTML = '<div style="color: rgba(255,255,255,0.7); text-align: center; padding: 20px;">Zero Trace Mode Active<br><small>No chat history saved</small></div>';
+            return;
+        }
+        
+        chatHistory.forEach(chat => {
+            const chatItem = document.createElement('div');
+            chatItem.className = `chat-item ${chat.id === currentChatId ? 'active' : ''}`;
+            chatItem.innerHTML = `
+                <div class="chat-name">${escapeHtml(chat.name)}</div>
+                <div class="chat-date">${formatDate(chat.date)}</div>
+                <div class="chat-preview">${escapeHtml(chat.preview || 'No messages yet')}</div>
+                <div class="chat-actions">
+                    <button class="chat-action-btn download-btn" data-id="${chat.id}" title="Download as JSON">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+                        </svg>
+                    </button>
+                    <button class="chat-action-btn delete-btn" data-id="${chat.id}" title="Delete chat">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                        </svg>
+                    </button>
+                </div>
+            `;
+            
+            chatList.appendChild(chatItem);
+            
+            // Set up click handlers for this chat
+            chatItem.querySelector('.download-btn').onclick = (e) => {
+                e.stopPropagation();
+                downloadChat(chat.id);
+            };
+            
+            chatItem.querySelector('.delete-btn').onclick = (e) => {
+                e.stopPropagation();
+                deleteChat(chat.id);
+            };
+            
+            // Select chat on click
+            chatItem.onclick = () => selectChat(chat.id);
+        });
+        
+        // Update zero trace button
+        document.getElementById('zeroTraceBtn').className = 
+            `zero-trace-btn ${zeroTraceMode ? 'active' : ''}`;
+        document.getElementById('zeroTraceIndicator').className = 
+            `zero-trace-indicator ${zeroTraceMode ? 'active' : ''}`;
+    }
+
+    // Update createNewChat() to properly initialize:
+async function createNewChat(silent = false) {
+    // Check if we need to delete oldest chat
+    if (chatHistory.length >= MAX_CHATS && !silent) {
+        document.getElementById('warningMessage').innerHTML = 
+            `You have reached the maximum of ${MAX_CHATS} chats. Creating a new chat will delete:<br><br>
+            <strong>"${escapeHtml(chatHistory[chatHistory.length-1].name)}"</strong><br>
+            <small>${formatDate(chatHistory[chatHistory.length-1].date)}</small><br><br>
+            Privox AI suggests you download it first!`;
+        document.getElementById('deleteWarning').classList.add('show');
+        document.getElementById('sidebarOverlay').classList.add('show');
+        return;
+    }
+    
+    // If we have max chats, remove oldest
+    if (chatHistory.length >= MAX_CHATS) {
+        chatHistory.pop();
+    }
+    
+    // Create new chat
+    const chatId = Date.now().toString();
+    const chatName = `Chat ${chatHistory.length + 1}`;
+    const newChat = {
+        id: chatId,
+        name: chatName,
+        date: new Date().toISOString(),
+        preview: '',
+        messages: []
+    };
+    
+    console.log("[E2E] Creating new chat:", chatName, "ID:", chatId);
+    
+    // Add to beginning of array (newest first)
+    chatHistory.unshift(newChat);
+    // Update storage icon after creating a chat
+    updateChatStorageIcon();
+    currentChatId = chatId;
+    
+    // Clear current conversation in UI
+    const chatContainer = document.getElementById('chatContainer');
+    const initialUI = document.getElementById('initialChatUI');
+    if (initialUI) {
+        initialUI.style.display = 'flex';
+    }
+    
+    // Remove all existing messages except system messages
+    const messages = chatContainer.querySelectorAll('.message:not(.system-message)');
+    messages.forEach(msg => msg.remove());
+    
+    // Save immediately
+    await saveChats();
+    
+    // Update UI
+    renderChatList();
+    closeSidebar();
+    
+    console.log("[E2E] New chat created and saved");
+}
+
+    // Select a chat
+    function selectChat(chatId) {
+        currentChatId = chatId;
+        const chat = chatHistory.find(c => c.id === chatId);
+        
+        if (!chat) return;
+        
+        // Clear current conversation in UI
+        const chatContainer = document.getElementById('chatContainer');
+        const initialUI = document.getElementById('initialChatUI');
+        initialUI.style.display = 'none';
+        
+        // Remove all existing messages
+        const messages = chatContainer.querySelectorAll('.message');
+        messages.forEach(msg => msg.remove());
+        
+        // Add messages from selected chat
+        chat.messages.forEach(msg => {
+            appendMessage(msg.role, msg.content, msg.isSystem);
+        });
+        
+        // Update UI
+        renderChatList();
+        closeSidebar();
+    }
+
+    // Save a message to current chat
+    async function saveMessageToCurrentChat(role, content, isSystem = false) {
+    if (!currentChatId || zeroTraceMode) return;
+    
+    console.log(`[E2E] Saving ${role} message to chat ${currentChatId}`);
+    
+    const chatIndex = chatHistory.findIndex(c => c.id === currentChatId);
+    if (chatIndex === -1) {
+        console.error("[E2E] Chat not found:", currentChatId);
+        return;
+    }
+    
+    // Add message
+    chatHistory[chatIndex].messages.push({
+        role,
+        content,
+        isSystem,
+        timestamp: new Date().toISOString()
+    });
+    
+    // Update chat preview (ONLY for user messages)
+    if (role === 'user') {
+        // Update chat name to first user message
+        if (chatHistory[chatIndex].name.startsWith('Chat ')) {
+            chatHistory[chatIndex].name = content.substring(0, 30).trim();
+            if (content.length > 30) chatHistory[chatIndex].name += '...';
+            console.log("[E2E] Updated chat name to:", chatHistory[chatIndex].name);
+        }
+        
+        // Update preview (first 50 chars)
+        if (!chatHistory[chatIndex].preview || chatHistory[chatIndex].preview === '') {
+            chatHistory[chatIndex].preview = content.substring(0, 50).trim();
+            if (content.length > 50) chatHistory[chatIndex].preview += '...';
+        }
+    }
+    
+    // Save and update UI
+    await saveChats();
+    renderChatList();
+}
+// REPLACE the downloadChat() function with this:
+async function downloadChat(chatId) {
+    const chat = chatHistory.find(c => c.id === chatId);
+    if (!chat) {
+        showToast("Chat not found");
+        return;
+    }
+    
+    console.log("[E2E] Downloading chat:", chat.name);
+    
+    // Create download data
+    const downloadData = {
+        "Privox AI Chat Export": chat.name,
+        "Export Date": new Date().toISOString(),
+        "Chat Info": {
+            "id": chat.id,
+            "name": chat.name,
+            "date": chat.date,
+            "message_count": chat.messages ? chat.messages.length : 0
+        },
+        "Messages": chat.messages || []
+    };
+    
+    // Ask user what format they want
+    const userChoice = prompt(
+        "Choose download format:\n\n" +
+        "1. JSON (plain text - readable)\n" +
+        "2. Encrypted (.bin file - secure)\n" +
+        "3. Cancel\n\n" +
+        "Enter 1, 2, or 3:",
+        "1"
+    );
+    
+    if (userChoice === null || userChoice === '3') {
+        showToast("Download cancelled");
+        return;
+    }
+    
+    if (userChoice === '1') {
+        // JSON format
+        const jsonStr = JSON.stringify(downloadData, null, 2);
+        const blob = new Blob([jsonStr], {type: 'application/json'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `privox_chat_${chat.name.replace(/[^a-z0-9]/gi, '_')}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        showToast(`Downloaded "${chat.name}" as JSON`);
+        
+    } else if (userChoice === '2') {
+        // Encrypted format
+        try {
+            const encrypted = await chatEncryption.encrypt(downloadData);
+            const blob = new Blob([encrypted], {type: 'application/octet-stream'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `privox_encrypted_${chat.name.replace(/[^a-z0-9]/gi, '_')}.bin`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showToast(`🔐 Downloaded "${chat.name}" as ENCRYPTED file`);
+            
+        } catch (e) {
+            console.error("[E2E] Encryption failed:", e);
+            showToast("Encryption failed, downloading as JSON instead");
+            
+            // Fallback to JSON
+            const jsonStr = JSON.stringify(downloadData, null, 2);
+            const blob = new Blob([jsonStr], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `privox_chat_${chat.name.replace(/[^a-z0-9]/gi, '_')}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    }
+}
+    // Delete a chat
+    function deleteChat(chatId) {
+        if (chatHistory.length <= 1) {
+            showToast("Cannot delete the only chat. Create a new one first.");
+            return;
+        }
+        
+        const chatIndex = chatHistory.findIndex(c => c.id === chatId);
+        if (chatIndex === -1) return;
+        
+        const chatName = chatHistory[chatIndex].name;
+        chatHistory.splice(chatIndex, 1);
+        
+        // If we deleted the current chat, select another one
+        if (chatId === currentChatId) {
+            currentChatId = chatHistory[0]?.id || null;
+            if (currentChatId) {
+                selectChat(currentChatId);
+            }
+        }
+        
+        saveChats();
+        renderChatList();
+        showToast(`Deleted "${chatName}"`);
+    }
+
+    // Toggle Zero Trace Mode
+    function toggleZeroTraceMode() {
+        zeroTraceMode = !zeroTraceMode;
+        
+        if (zeroTraceMode) {
+            // Enter Zero Trace Mode
+            showToast("🔒 Zero Trace Mode Activated - No data will be saved");
+            
+            // Create a temporary in-memory chat
+            const tempChatId = 'zero_trace_' + Date.now();
+            currentChatId = tempChatId;
+            
+            // Clear current conversation
+            const chatContainer = document.getElementById('chatContainer');
+            const initialUI = document.getElementById('initialChatUI');
+            initialUI.style.display = 'flex';
+            
+            const messages = chatContainer.querySelectorAll('.message');
+            messages.forEach(msg => msg.remove());
+            
+        } else {
+            // Exit Zero Trace Mode
+            showToast("🔓 Zero Trace Mode Deactivated");
+            
+            // Clear current conversation
+            const chatContainer = document.getElementById('chatContainer');
+            const initialUI = document.getElementById('initialChatUI');
+            initialUI.style.display = 'flex';
+            
+            const messages = chatContainer.querySelectorAll('.message');
+            messages.forEach(msg => msg.remove());
+            
+            // Load saved chats
+            loadChats();
+            
+            // Create new chat if none exists
+            if (chatHistory.length === 0) {
+                createNewChat(true);
+            }
+        }
+        
+        // Update UI
+        renderChatList();
+        // Update storage icon for selected chat
+        updateChatStorageIcon();
+    }
+
+    // Toggle sidebar
+    function toggleSidebar() {
+        const sidebar = document.getElementById('chatSidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        
+        if (sidebar.classList.contains('open')) {
+            closeSidebar();
+        } else {
+            sidebar.classList.add('open');
+            overlay.classList.add('show');
+        }
+    }
+
+    function closeSidebar() {
+        document.getElementById('chatSidebar').classList.remove('open');
+        document.getElementById('sidebarOverlay').classList.remove('show');
+        document.getElementById('deleteWarning').classList.remove('show');
+    }
+
+    function closeDeleteWarning() {
+        document.getElementById('deleteWarning').classList.remove('show');
+        document.getElementById('sidebarOverlay').classList.remove('show');
+    }
+
+    function confirmNewChat() {
+        closeDeleteWarning();
+        createNewChat(true);
+    }
+
+    // Helper functions for chat system
+    function formatDate(isoString) {
+        const date = new Date(isoString);
+        return date.toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // ===================================================================
+    // EXISTING CODE - UNCHANGED BELOW THIS POINT
+    // ===================================================================
+    
+    // TEXT ANIMATION (Unchanged)
+    async function morphTitleAnimation() {
+        if (!textAnimationContainer) return;
+        
+        const textParts = textAnimationContainer.querySelectorAll('.anim-text');
+        for (let i = 0; i < textParts.length; i++) {
+            await new Promise(resolve => setTimeout(resolve, 150));
+            textParts[i].classList.add('visible');
+        }
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        textAnimationContainer.querySelector('.part-2').classList.remove('visible');
+        textAnimationContainer.querySelector('.part-5').classList.remove('visible');
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        textAnimationContainer.querySelector('.part-1').classList.remove('visible');
+        textAnimationContainer.querySelector('.part-3').classList.remove('visible');
+        textAnimationContainer.querySelector('.part-4').classList.remove('visible');
+        await new Promise(resolve => setTimeout(resolve, 700));
+        finalLogoContainer.classList.add('visible');
+        await new Promise(resolve => setTimeout(resolve, 500));
+        subtitleElement.classList.add('visible');
+    }
+
+    // MARKDOWN PARSER (Unchanged)
+    function parseMarkdownToHTML(text) {
+        let html = text.replace(/([a-z])(###)/gi, '$1 $2').replace(/(###)([a-z])/gi, '$1 $2');
+        html = html.replace(/([a-z])([A-Z])/g, '$1 $2');
+        
+        html = html.replace(/###(.*)/g, function(match, heading) {
+            heading = heading.trim();
+            if (heading) {
+                return `<h3>${heading}</h3>`;
+            }
+            return '';
+        });
+        
+        html = html.replace(/^\s*-\s+(.+)$/gm, '<li>$1</li>');
+        html = html.replace(/(<li>.*<\/li>)/gs, function(match) {
+            if (!match.includes('<ul>')) {
+                return '<ul>' + match + '</ul>';
+            }
+            return match;
+        });
+        
+        html = html.replace(/```(\w+)?\n([\s\S]*?)```/g, function(match, lang, code) {
+            code = code.replace(/###/g, ' ');
+            return `<pre><code class="language-${lang || 'plaintext'}">${escapeHtml(code)}</code></pre>`;
+        });
+        
+        html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+        
+        const lines = html.split('\n');
+        let result = [];
+        let currentParagraph = [];
+        let inList = false;
+        
+        for (let line of lines) {
+            line = line.trim();
+            
+            if (line.startsWith('<h3>') || line.startsWith('<pre>') || line.startsWith('<ul>') || line.startsWith('</ul>')) {
+                if (currentParagraph.length > 0) {
+                    result.push('<p>' + currentParagraph.join(' ') + '</p>');
+                    currentParagraph = [];
+                }
+                result.push(line);
+            } else if (line.startsWith('<li>')) {
+                if (!inList) {
+                    result.push('<ul>');
+                    inList = true;
+                }
+                result.push(line);
+            } else if (line === '' && currentParagraph.length > 0) {
+                if (inList) {
+                    result.push('</ul>');
+                    inList = false;
+                }
+                result.push('<p>' + currentParagraph.join(' ') + '</p>');
+                currentParagraph = [];
+            } else if (line && !line.startsWith('<')) {
+                currentParagraph.push(line);
+            }
+        }
+        
+        if (currentParagraph.length > 0) {
+            result.push('<p>' + currentParagraph.join(' ') + '</p>');
+        }
+        if (inList) {
+            result.push('</ul>');
+        }
+        
+        return result.join('\n');
+    }
+    
+    // ===================================================================
+    // HELPER FUNCTIONS - UPDATED TO SAVE MESSAGES
+    // ===================================================================
+    function showToast(message) {
+        systemToast.textContent = message;
+        systemToast.classList.add('show');
+        setTimeout(() => {
+            systemToast.classList.remove('show');
+        }, 2000);
+    }
+
+    function showThinkingUI() {
+        initialChatUI.style.display = 'none';
+        
+        let thinkingUI = document.getElementById('thinkingUI');
+        if (!thinkingUI) {
+            thinkingUI = document.createElement('div');
+            thinkingUI.id = 'thinkingUI';
+            thinkingUI.className = 'thinking-ui';
+            thinkingUI.innerHTML = `
+                <div class="spiral-gif-wrapper thinking-spiral">
+                    <img src="{{ url_for('static', filename='spiral.gif') }}" alt="Thinking..." class="spiral-gif" />
+                </div>
+                <div class="thinking-text">Analyzing query...</div>
+            `;
+        }
+        
+        chatContainer.appendChild(thinkingUI);
+        thinkingUI.style.display = 'flex';
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    function hideThinkingUI() {
+        const thinkingUI = document.getElementById('thinkingUI');
+        if (thinkingUI) {
+            thinkingUI.style.display = 'none';
+            setTimeout(() => {
+                if (thinkingUI.parentNode) {
+                    thinkingUI.parentNode.removeChild(thinkingUI);
+                }
+            }, 300);
+        }
+    }// Add this function to check what's being saved
+function debugChatState() {
+    console.log("=== DEBUG CHAT STATE ===");
+    console.log("Current Chat ID:", currentChatId);
+    console.log("Total Chats:", chatHistory.length);
+    
+    chatHistory.forEach((chat, i) => {
+        console.log(`Chat ${i}: "${chat.name}"`);
+        console.log(`  Preview: "${chat.preview}"`);
+        console.log(`  Messages:`, chat.messages?.length || 0);
+        if (chat.messages?.length > 0) {
+            console.log(`  Last message: "${chat.messages[chat.messages.length-1].content.substring(0,50)}..."`);
+        }
+    });
+    
+    console.log("Zero Trace Mode:", zeroTraceMode);
+    console.log("=========================");
+}
+
+// Call this after saveChats() and loadChats()
+
+    function addSpeakerIcon(messageDiv, text) {
+        const speakerBtn = document.createElement('button');
+        speakerBtn.className = 'speaker-btn';
+        speakerBtn.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+            </svg>
+        `;
+        
+        // Store the full text in data attribute
+        speakerBtn.setAttribute('data-text', text);
+        
+        speakerBtn.onclick = (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            
+            if (!ttsEnabled) {
+                showToast("TTS is disabled.");
+                return;
+            }
+            
+            // If clicking SAME button → toggle stop
+            if (activeSpeakerBtn === speakerBtn) {
+                socket.emit('speak_text', { text });
+
+
+                speakerBtn.classList.remove('speaking');
+                activeSpeakerBtn = null;
+                return;
+            }
+            
+            // If another speaker is active → stop it visually
+            if (activeSpeakerBtn) {
+                activeSpeakerBtn.classList.remove('speaking');
+            }
+            
+            activeSpeakerBtn = speakerBtn;
+            speakerBtn.classList.add('speaking');
+            
+            socket.emit('speak_text', { text });
+            
+            console.log("[UI] Speak request sent:", text.length);
+        };
+        
+        messageDiv.appendChild(speakerBtn);
+    }function saveMessage(role, content, isSystem = false) {
+    // Call the correct async function
+    saveMessageToCurrentChat(role, content, isSystem);
+}
+
+  function appendMessage(role, text, isSystem = false) {
+    console.log(`[DEBUG] appendMessage called: ${role}, "${text.substring(0, 50)}..."`);
+    
+    initialChatUI.style.display = 'none';
+    hideThinkingUI();
+    
+    const msgDiv = document.createElement('div');
+    
+    if (isSystem) {
+        msgDiv.classList.add('message', 'system-message');
+        msgDiv.textContent = text;
+    } else if (role === 'user') {
+        msgDiv.classList.add('message', 'user-message');
+        msgDiv.textContent = text;
+        
+        console.log(`[DEBUG] Saving user message to chat ${currentChatId}`);
+        // SAVE USER MESSAGE (calls wrapper which calls async function)
+        saveMessage(role, text, isSystem);  // This calls the wrapper
+        
+    } else if (role === 'ai') {
+        msgDiv.classList.add('message', 'structured-message');
+        
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'ai-content';
+        contentDiv.innerHTML = parseMarkdownToHTML(text);
+        msgDiv.appendChild(contentDiv);
+        
+        if (!text.startsWith('🚀') && !text.startsWith('📸') && 
+            !text.startsWith('🔒') && !text.startsWith('🧮')) {
+            addSpeakerIcon(msgDiv, text);
+        }
+        
+        msgDiv.querySelectorAll('pre code').forEach((block) => {
+            hljs.highlightElement(block);
+        });
+        
+        console.log(`[DEBUG] Saving AI response to chat ${currentChatId}`);
+        // SAVE AI RESPONSE (calls wrapper which calls async function)
+        saveMessage(role, text, isSystem);  // This calls the wrapper
+    }
+    
+    chatContainer.appendChild(msgDiv);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+    
+    if (role === 'ai' || isSystem) {
+        isGenerating = false;
+        enableInputs();
+    }
+}
+    let partialResponseAccumulator = '';
+    let lastPartialMessageDiv = null;
+
+    function appendPartialMessage(chunk) {
+        hideThinkingUI();
+        
+        if (!lastPartialMessageDiv) {
+            lastPartialMessageDiv = document.createElement('div');
+            lastPartialMessageDiv.classList.add('message', 'structured-message');
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'ai-content';
+            lastPartialMessageDiv.appendChild(contentDiv);
+            
+            chatContainer.appendChild(lastPartialMessageDiv);
+            partialResponseAccumulator = '';
+        }
+        
+        partialResponseAccumulator += chunk;
+        
+        const contentDiv = lastPartialMessageDiv.querySelector('.ai-content');
+        const html = parseMarkdownToHTML(partialResponseAccumulator);
+        contentDiv.innerHTML = html;
+        
+        contentDiv.querySelectorAll('pre code').forEach((block) => {
+            hljs.highlightElement(block);
+        });
+        
+        // REMOVED: Speaker icon from streaming messages
+        // Only add speaker icon to final AI responses
+        
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    function transitionToScreen2() {
+        screen1.classList.remove('screen-active');
+        screen1.classList.add('screen-inactive');
+        screen2.classList.add('screen-active');
+        
+        // Show sidebar toggle on screen 2
+        document.getElementById('sidebarToggle').style.display = 'flex';
+        
+        socket.emit('start_stt');
+    }
+
+    function disableInputs() {
+        sendBtn.disabled = true;
+        chatInput.disabled = true;
+        mainMicBtn.disabled = true;
+        keyboardBtn.disabled = true;
+        micBtnText.disabled = true;
+    }
+
+    function enableInputs() {
+        sendBtn.disabled = false;
+        chatInput.disabled = false;
+        mainMicBtn.disabled = false;
+        keyboardBtn.disabled = false;
+        micBtnText.disabled = false;
+    }
+
+    // ===================================================================
+    // SCREEN 1: BUTTONS & SOCKETS
+    // ===================================================================
+    micBtnScreen1.onclick = () => {
+        wakeUiContainer.classList.add('active');
+        micBtnScreen1.classList.add('hidden');
+        
+        socket.emit('start_wakeword');
+    };
+    
+    socket.on('wakeword_detected', (data) => {
+        if (data.triggered) {
+            console.log("🔥 Frontend: Wakeword DETECTED!");
+            wakeText.innerHTML = "Privox AI Activated!";
+            setTimeout(transitionToScreen2, 1000);
+        } else {
+            console.log("Frontend: Wakeword timed out or failed.");
+            wakeUiContainer.classList.remove('active');
+            micBtnScreen1.classList.remove('hidden');
+        }
+    });
+    // Add these to your socket.io listeners:
+
+// When encryption is complete
+socket.on('encryption_complete', (data) => {
+    console.log("[E2E] Data encrypted successfully");
+    console.log("[E2E] Fingerprint:", data.fingerprint);
+    
+    // Save the encrypted data
+    localStorage.setItem(STORAGE_KEY + '_encrypted', data.encrypted);
+    
+    // Also save fingerprint
+    localStorage.setItem(STORAGE_KEY + '_fingerprint', data.fingerprint);
+    
+    showToast("Chats encrypted and saved");
+});
+
+// When decryption is complete
+socket.on('decryption_complete', (data) => {
+    console.log("[E2E] Data decrypted successfully");
+    
+    if (data.decrypted) {
+        chatHistory = data.decrypted;
+        currentChatId = chatHistory[0]?.id || null;
+        renderChatList();
+    }
+});
+
+// Get encryption info on connection
+socket.on('encryption_info', (data) => {
+    console.log("[E2E] Encryption active. Fingerprint:", data.fingerprint);
+    
+    // Display fingerprint in UI (optional)
+    const fingerprintElement = document.getElementById('encryptionFingerprint');
+    if (fingerprintElement) {
+        fingerprintElement.textContent = `E2E: ${data.fingerprint}`;
+    }
+});
+
+// Handle encryption errors
+socket.on('encryption_error', (data) => {
+    console.error("[E2E Error]", data.error);
+    showToast("Encryption error: " + data.error);
+});
+    // ===================================================================
+    // SCREEN 2: BUTTONS & SOCKETS
+    // ===================================================================
+    keyboardBtn.onclick = () => {
+        socket.emit('stop_stt');
+        mainControls.style.display = 'none';
+        textInputArea.style.display = 'flex';
+        chatInput.focus();
+    };
+
+    stopBtn.onclick = () => {
+        socket.emit('hard_stop');
+        hideThinkingUI();
+    };
+
+    mainMicBtn.onclick = () => {
+        if (isListening) {
+            socket.emit('stop_stt');
+            mainMicBtn.classList.remove('listening');
+            isListening = false;
+        } else {
+            socket.emit('start_stt');
+            mainMicBtn.classList.add('listening');
+            isListening = true;
+        }
+    };
+
+    micBtnText.onclick = () => {
+        mainControls.style.display = 'flex';
+        textInputArea.style.display = 'none';
+        socket.emit('start_stt');
+    };
+
+    modeToggleBtn.onclick = () => {
+        onlineMode = !onlineMode;
+        socket.emit('toggle_online_mode', {online: onlineMode});
+    };
+
+    ttsToggleBtn.onclick = () => {
+        ttsEnabled = !ttsEnabled;
+        socket.emit('toggle_tts', {enabled: ttsEnabled});
+        ttsToggleBtn.classList.toggle('active', ttsEnabled);
+        showToast(`TTS ${ttsEnabled ? 'ENABLED' : 'DISABLED'}`);
+    };
+
+    sendBtn.onclick = () => {
+        if (isGenerating) {
+            showToast("Please wait for current response to complete");
+            return;
+        }
+        
+        const text = chatInput.value.trim();
+        if (text) {
+            socket.emit('manual_text', { 'text': text });
+            chatInput.value = '';
+        }
+    };
+    
+    chatInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            sendBtn.click();
+        }
+    });
+
+    // ===================================================================
+    // SOCKET HANDLERS
+    // ===================================================================
+    socket.on('connect', () => {
+        console.log("✅ Connected to server");
+    });
+
+    socket.on('stt_started', () => {
+        console.log("Frontend: STT Started.");
+        mainMicBtn.classList.add('listening');
+        speakPromptText.textContent = "Listening...";
+        isListening = true;
+    });
+
+    socket.on('stt_stopped', () => {
+        console.log("Frontend: STT Stopped.");
+        mainMicBtn.classList.remove('listening');
+        speakPromptText.textContent = "Speak to Privox AI To Get Answer";
+        showToast("Microphone stopped");
+        isListening = false;
+    });
+
+    socket.on('stt_fully_stopped', () => {
+        console.log("Frontend: STT Fully Stopped.");
+        mainMicBtn.classList.remove('listening');
+        speakPromptText.textContent = "Click mic to start listening";
+        isListening = false;
+    });
+
+    socket.on('user_speech', (data) => {
+        console.log("Frontend: User speech received:", data.text);
+        // IMMEDIATELY show user message
+        appendMessage('user', data.text);
+        isGenerating = true;
+        disableInputs();
+    });
+
+    socket.on('show_thinking_ui', () => {
+        console.log("Frontend: Showing thinking UI");
+        showThinkingUI();
+    });
+
+    socket.on('hide_thinking_ui', () => {
+        console.log("Frontend: Hiding thinking UI");
+        hideThinkingUI();
+    });
+
+    socket.on('ai_response_partial', (data) => {
+        console.log("Frontend: AI partial response received.");
+        appendPartialMessage(data.text);
+    });
+
+    socket.on('ai_response', (data) => {
+        console.log("Frontend: AI full response received:", data.text);
+        
+        // Only create new message if we don't have partial messages
+        if (!lastPartialMessageDiv) {
+            appendMessage('ai', data.text);
+        } else {
+            // Update existing partial message
+            const contentDiv = lastPartialMessageDiv.querySelector('.ai-content');
+            contentDiv.innerHTML = parseMarkdownToHTML(data.text);
+            
+            // Re-apply syntax highlighting
+            contentDiv.querySelectorAll('pre code').forEach((block) => {
+                hljs.highlightElement(block);
+            });
+            
+            // Add speaker button if not present
+            if (!lastPartialMessageDiv.querySelector('.speaker-btn')) {
+                addSpeakerIcon(lastPartialMessageDiv, data.text);
+            }
+            
+            // Reset partial accumulator
+            partialResponseAccumulator = '';
+            lastPartialMessageDiv = null;
+        }
+        
+        isGenerating = false;
+        enableInputs();
+    });
+
+    socket.on('generation_stopped', (data) => {
+        console.log("Frontend: Generation stopped.");
+        appendMessage('system', data.text, true);
+        isGenerating = false;
+        hideThinkingUI();
+        enableInputs();
+    });
+
+    socket.on('mode_changed', (data) => {
+        onlineMode = data.online;
+        modeToggleBtn.className = `mode-toggle-btn ${onlineMode ? 'online' : 'offline'}`;
+        modeToggleBtn.querySelector('.mode-text').textContent = onlineMode ? 'ONLINE' : 'OFFLINE';
+        showToast(data.message);
+    });
+
+    socket.on('tts_status', (data) => {
+        ttsEnabled = data.enabled;
+        ttsToggleBtn.className = `tts-toggle-btn ${ttsEnabled ? 'active' : ''}`;
+        showToast(data.message);
+    });
+
+    socket.on('busy_state', (data) => {
+        showToast(data.message);
+    });
+
+    socket.on('reset_state', () => {
+        isGenerating = false;
+        isListening = false;
+        mainMicBtn.classList.remove('listening');
+        enableInputs();
+        hideThinkingUI();
+    });
+
+    socket.on('full_stop_ack', () => {
+        console.log("Frontend: Full stop acknowledged");
+        showToast("Privox AI Stopped");
+        isGenerating = false;
+        isListening = false;
+        mainMicBtn.classList.remove('listening');
+        enableInputs();
+        hideThinkingUI();
+    });
+
+    socket.on('tts_started', (data) => {
+        console.log("Frontend: TTS started");
+        showToast(data.message);
+    });
+
+    socket.on('tts_complete', () => {
+        if (activeSpeakerBtn) {
+            activeSpeakerBtn.classList.remove('speaking');
+            activeSpeakerBtn = null;
+        }
+    });
+
+    socket.on('tts_error', (data) => {
+        console.log("Frontend: TTS error:", data.message);
+        showToast(data.message);
+    });
+
+    // Add error handling for connection issues
+    socket.on('connect_error', (error) => {
+        console.log("❌ Connection error:", error);
+        showToast("Connection error. Please refresh.");
+    });
+
+    socket.on('disconnect', () => {
+        console.log("❌ Disconnected from server");
+        showToast("Disconnected from server");
+    });
+
+    // --- Start animation and chat system on load ---
+    document.addEventListener('DOMContentLoaded', () => {
+        morphTitleAnimation();
+        initChatSystem(); // Initialize chat history system
+    });
+</script>
+</body>
+</html>
